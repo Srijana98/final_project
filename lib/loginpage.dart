@@ -7,10 +7,9 @@ import 'submitattendancepage.dart';
 import 'config.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: LoginScreen(),
-  ));
+  runApp(
+    const MaterialApp(debugShowCheckedModeBanner: false, home: LoginScreen()),
+  );
 }
 
 class LoginScreen extends StatefulWidget {
@@ -26,100 +25,98 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-
-Future<void> _login() async {
-  final email = _emailController.text.trim();
-  final password = _passwordController.text.trim();
-
-  if (email.isEmpty || password.isEmpty) {
-    _showMessage("Please enter both email and password.", isError: true);
-    return;
-  }
-
-  final hasInternet = await _checkInternetConnection();
-  if (!hasInternet) {
-    _showMessage("No internet connection.", isError: true);
-    return;
-  }
-
-  setState(() => _isLoading = true);
-
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/v1/mobile_login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-
-    final data = jsonDecode(response.body);
-
-    if (data["status"] == "success") {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      final token = data["token"];
-      final user = data["employee_data"];
-
-      // // Get employee ID, org ID, and location ID from login response
-      // final empId = user["id"]?.toString() ?? '';
-      // final orgId = user["orgid"]?.toString() ?? '';
-      // final locationId = user["locationid"]?.toString() ?? '';
-
-      // // Store token and basic info
-      // await prefs.setString('token', token);
-      // await prefs.setString('username', email);
-      // await prefs.setString('employee_id', empId);
-      // await prefs.setString('org_id', orgId);
-      // await prefs.setString('location_id', locationId);
-
-
-// new code
-
-// ✅ SAFER version: handles different key names from the backend
-final empId = (user["id"] ?? user["employee_id"])?.toString() ?? '';
-final orgId = (user["orgid"] ?? user["org_id"])?.toString() ?? '';
-final locationId = (user["locationid"] ?? user["location_id"])?.toString() ?? '';
-
-// ✅ Debug print to confirm values are correctly fetched
-print("====== DEBUG LOGIN STORED VALUES ======");
-print("employee_id: $empId");
-print("org_id: $orgId");
-print("locationid: $locationId");
-print("=======================================");
-
-// ✅ Save to SharedPreferences
-await prefs.setString('employee_id', empId);
-await prefs.setString('org_id', orgId);
-await prefs.setString('location_id', locationId);
-
-    
-
-      // ✅ Store full user profile info
-      await prefs.setString('name', user["full_name"] ?? '');
-      await prefs.setString('designation', user["designation_name"] ?? '');
-      await prefs.setString('serviceDuration', user["service_duration"] ?? '');
-      await prefs.setString('branch', user["location_name"] ?? '');
-     // await prefs.setString('photoUrl', user["image_url"] ?? '');
-
-      await prefs.setString('photo', user["image_url"] ?? '');
-
-      _showMessage("Login successful!");
-
-      // Navigate to Dashboard
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => DashboardPage(token: token)),
-      );
-    } else {
-      _showMessage(data["message"] ?? "Login failed", isError: true);
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage("Please enter both email and password.", isError: true);
+      return;
     }
-  } catch (e) {
-    _showMessage("Error during login: $e", isError: true);
-  } finally {
-    setState(() => _isLoading = false);
-  }
-}
 
+    final hasInternet = await _checkInternetConnection();
+    if (!hasInternet) {
+      _showMessage("No internet connection.", isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/mobile_login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data["status"] == "success") {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+        final token = data["token"];
+        final user = data["employee_data"];
+
+        // // Get employee ID, org ID, and location ID from login response
+        // final empId = user["id"]?.toString() ?? '';
+        // final orgId = user["orgid"]?.toString() ?? '';
+        // final locationId = user["locationid"]?.toString() ?? '';
+
+        // // Store token and basic info
+        // await prefs.setString('token', token);
+        // await prefs.setString('username', email);
+        // await prefs.setString('employee_id', empId);
+        // await prefs.setString('org_id', orgId);
+        // await prefs.setString('location_id', locationId);
+
+        // new code
+
+        // ✅ SAFER version: handles different key names from the backend
+        final empId = (user["id"] ?? user["employee_id"])?.toString() ?? '';
+        final orgId = (user["orgid"] ?? user["org_id"])?.toString() ?? '';
+        final locationId =
+            (user["locationid"] ?? user["location_id"])?.toString() ?? '';
+
+        // ✅ Debug print to confirm values are correctly fetched
+        print("====== DEBUG LOGIN STORED VALUES ======");
+        print("employee_id: $empId");
+        print("org_id: $orgId");
+        print("locationid: $locationId");
+        print("=======================================");
+
+        // ✅ Save to SharedPreferences
+        await prefs.setString('employee_id', empId);
+        await prefs.setString('org_id', orgId);
+        await prefs.setString('location_id', locationId);
+
+        // ✅ Store full user profile info
+        await prefs.setString('name', user["full_name"] ?? '');
+        await prefs.setString('designation', user["designation_name"] ?? '');
+        await prefs.setString(
+          'serviceDuration',
+          user["service_duration"] ?? '',
+        );
+        await prefs.setString('branch', user["location_name"] ?? '');
+        // await prefs.setString('photoUrl', user["image_url"] ?? '');
+
+        await prefs.setString('photo', user["image_url"] ?? '');
+
+        _showMessage("Login successful!");
+
+        // Navigate to Dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardPage(token: token)),
+        );
+      } else {
+        _showMessage(data["message"] ?? "Login failed", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error during login: $e", isError: true);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   Future<bool> _checkInternetConnection() async {
     try {
@@ -163,14 +160,19 @@ await prefs.setString('location_id', locationId);
             return Stack(
               children: [
                 CustomPaint(
-                  size: Size(constraints.maxWidth, constraints.maxHeight * 0.30),
+                  size: Size(
+                    constraints.maxWidth,
+                    constraints.maxHeight * 0.30,
+                  ),
                   painter: CurvedPainter(),
                 ),
                 SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
                       child: IntrinsicHeight(
                         child: Column(
                           children: [
@@ -181,7 +183,7 @@ await prefs.setString('location_id', locationId);
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(70),
                                 child: Image.asset(
-                                  'assets/xelwel logo.png',
+                                  'assets/logo1.png',
                                   width: 110,
                                   height: 110,
                                   fit: BoxFit.cover,
@@ -222,7 +224,10 @@ await prefs.setString('location_id', locationId);
                                     controller: _emailController,
                                     keyboardType: TextInputType.emailAddress,
                                     decoration: InputDecoration(
-                                      prefixIcon: const Icon(Icons.email, color: Color(0xFF346CB0)),
+                                      prefixIcon: const Icon(
+                                        Icons.email,
+                                        color: Color(0xFF346CB0),
+                                      ),
                                       hintText: 'Username / Email',
                                       filled: true,
                                       fillColor: Colors.white,
@@ -237,15 +242,21 @@ await prefs.setString('location_id', locationId);
                                     controller: _passwordController,
                                     obscureText: !_isPasswordVisible,
                                     decoration: InputDecoration(
-                                      prefixIcon: const Icon(Icons.lock, color: Color(0xFF346CB0)),
+                                      prefixIcon: const Icon(
+                                        Icons.lock,
+                                        color: Color(0xFF346CB0),
+                                      ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                          _isPasswordVisible
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
                                           color: Colors.grey,
                                         ),
                                         onPressed: () {
                                           setState(() {
-                                            _isPasswordVisible = !_isPasswordVisible;
+                                            _isPasswordVisible =
+                                                !_isPasswordVisible;
                                           });
                                         },
                                       ),
@@ -279,19 +290,25 @@ await prefs.setString('location_id', locationId);
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 10,
+                                      ),
                                       minimumSize: const Size(150, 35),
                                     ),
-                                    child: _isLoading
-                                        ? const CircularProgressIndicator(color: Colors.white)
-                                        : const Text(
-                                            'Log In',
-                                            style: TextStyle(
+                                    child:
+                                        _isLoading
+                                            ? const CircularProgressIndicator(
                                               color: Colors.white,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w600,
+                                            )
+                                            : const Text(
+                                              'Login',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
-                                          ),
                                   ),
                                   const SizedBox(height: 15),
                                   ElevatedButton(
@@ -301,7 +318,10 @@ await prefs.setString('location_id', locationId);
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 10,
+                                      ),
                                       minimumSize: const Size(150, 35),
                                     ),
                                     child: const Text(
@@ -335,13 +355,19 @@ await prefs.setString('location_id', locationId);
 class CurvedPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = const Color(0xFF346CB0)
-      ..style = PaintingStyle.fill;
+    Paint paint =
+        Paint()
+          ..color = const Color(0xFF346CB0)
+          ..style = PaintingStyle.fill;
 
     Path path = Path();
     path.lineTo(0, size.height - 40);
-    path.quadraticBezierTo(size.width * 0.5, size.height, size.width, size.height - 40);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height,
+      size.width,
+      size.height - 40,
+    );
     path.lineTo(size.width, 0);
     path.close();
 
@@ -351,6 +377,3 @@ class CurvedPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
-
-
-

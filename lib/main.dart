@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'signup_page.dart';
 import 'loginpage.dart';
-import 'dashboardpage.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -18,17 +17,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.blue[50],
-        visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Roboto',
       ),
-      initialRoute: '/login',
+      initialRoute: '/signup',
       routes: {
+        '/signup': (context) => const SignupPage(),
         '/login': (context) => const LoginScreen(),
-      '/dashboard': (context) =>  DashboardPage(),
       },
     );
   }
 }
+
 
 
 // demogwt.smarthajiri.com
